@@ -5,7 +5,7 @@ inThisBuild(
     licenses := Seq("MIT" -> url("https://choosealicense.com/licenses/mit/"))
   )
 )
-
+//Testing
 lazy val testSettings: Seq[Setting[_]] = Seq(
   scriptedLaunchOpts := {
     scriptedLaunchOpts.value ++ Seq(
