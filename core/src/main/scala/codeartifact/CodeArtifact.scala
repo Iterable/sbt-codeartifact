@@ -1,5 +1,6 @@
 package codeartifact
 
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.codeartifact.CodeartifactClient
 import software.amazon.awssdk.services.codeartifact.model.GetAuthorizationTokenRequest
 
@@ -23,15 +24,17 @@ object CodeArtifact {
       .durationSeconds(15.minutes.toSeconds)
       .build()
 
-  private def getAuthTokenFromRequest(req: GetAuthorizationTokenRequest): String =
+  private def getAuthTokenFromRequest(region: Region, req: GetAuthorizationTokenRequest): String =
     CodeartifactClient
-      .create()
+      .builder()
+      .region(region)
+      .build()
       .getAuthorizationToken(req)
       .authorizationToken()
 
   def getAuthToken(repo: CodeArtifactRepo): Option[String] =
     try {
-      Some(getAuthTokenFromRequest(getAuthorizationTokenRequest(repo.domain, repo.owner)))
+      Some(getAuthTokenFromRequest(Region.of(repo.region), getAuthorizationTokenRequest(repo.domain, repo.owner)))
     } catch {
       case _: Throwable => None
     }
