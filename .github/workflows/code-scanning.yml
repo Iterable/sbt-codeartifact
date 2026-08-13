@@ -195,8 +195,6 @@ jobs:
 #                "triage_decision": "TRUE_POSITIVE" | "REMOVE"
 #              }
 #
-#
-#
 #      - name: Run ls command on downloaded artifact post Claude #make sure we are getting the right file
 #        run: ls -la
 
