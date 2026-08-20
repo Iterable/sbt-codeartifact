@@ -1,0 +1,50 @@
+name: "Code Analysis"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 1' # Runs every Monday at midnight, this is to ensure that there is at least 1 scan every 7 days.
+
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scala-scan:
+    # User definable name of this GitHub Actions job.
+    name: Scala Security Audit
+    # If you are self-hosting, change the following `runs-on` value:
+    runs-on: ubuntu-latest
+
+    container:
+      # A Docker image with Semgrep installed. Do not change this.
+      image: semgrep/semgrep
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Fetch forked ruleset
+        uses: actions/checkout@v4
+        with:
+          repository: 'Iterable/semgrep-rules'
+          path: .scala-security
+          sparse-checkout: 'scala'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Run the "semgrep scan" command on the command line of the docker image.
+      - run: semgrep scan --config .scala-security/scala/ --sarif-output=semgrep.sarif
+
+      - name: Upload SARIF results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep

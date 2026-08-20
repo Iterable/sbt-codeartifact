@@ -9,23 +9,29 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
-        java-version: [8, 11, 17]
+        java-version: ['11', '17']
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up JDK & sbt
-        uses: olafurpg/setup-scala@v10
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: ${{ matrix.java-version }}
+          cache: sbt
+
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
+        with:
+          # 1.x runner so JDK 11 still works; the 2.x runner needs 17+.
+          sbt-runner-version: 1.12.11
 
       - name: Run scalafmt
-        run: sbt scalafmtCheckAll
-
-      - name: Run scalafmt sbt
-        run: sbt scalafmtSbtCheck
+        run: sbt scalafmtCheckAll scalafmtSbtCheck
 
       - name: Run tests
         run: sbt test
